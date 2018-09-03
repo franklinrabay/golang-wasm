@@ -1,0 +1,74 @@
+<!doctype html>
+<!--
+Copyright 2018 The Go Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>Go wasm</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+
+<body>
+	<script src="wasm_exec.js"></script>
+	<script>
+		if (!WebAssembly.instantiateStreaming) { // polyfill
+			WebAssembly.instantiateStreaming = async (resp, importObject) => {
+				const source = await (await resp).arrayBuffer();
+				return await WebAssembly.instantiate(source, importObject);
+			};
+		}
+
+		const go = new Go();
+		let mod, inst;
+		WebAssembly.instantiateStreaming(fetch("test.wasm"), go.importObject).then((result) => {
+			mod = result.module;
+			inst = result.instance;
+			document.getElementById("runButton").disabled = false;
+		});
+
+		async function run() {
+			console.clear();
+			await go.run(inst);
+			inst = await WebAssembly.instantiate(mod, go.importObject); // reset instance
+		}
+	</script>
+	
+	<button class="btn btn-primary" onClick="run();" id="runButton" disabled>Run</button>
+	
+	<h1>TIC TAC TOE :)</h1>
+	<hr/>
+	<div id="tictactoe" class="form-group">
+		<form id="tictac">
+			<table>
+				<tr>
+					<td><input class="form-control" type="text" name="cell[1][1]" id="cell[]"></td>
+					<td><input class="form-control" type="text" name="cell[1][2]" id="cell[]"></td>
+					<td><input class="form-control" type="text" name="cell[1][3]" id="cell[]"></td>
+				</tr>
+				<tr>
+					<td><input class="form-control" type="text" name="cell[2][1]" id="cell[]"></td>
+					<td><input class="form-control" type="text" name="cell[2][2]" id="cell[]"></td>
+					<td><input class="form-control" type="text" name="cell[2][3]" id="cell[]"></td>
+				</tr>
+				<tr>
+					<td><input class="form-control" type="text" name="cell[3][1]" id="cell[]"></td>
+					<td><input class="form-control" type="text" name="cell[3][2]" id="cell[]"></td>
+					<td><input class="form-control" type="text" name="cell[3][3]" id="cell[]"></td>
+				</tr>
+			</table>
+		</form>
+	</div>
+	<button class="btn btn-primary" onClick="play();" id="play">Check Winner</button>
+
+	<hr/>
+	<h1>Event Listener</h1>
+	<hr/>
+	<input type="text" name="myText" id="myText">
+	<hr/>
+</body>
+
+</html>
